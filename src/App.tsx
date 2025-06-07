@@ -1,4 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Winsite from './pages/Winsite';
 
 function App() {
   return (
@@ -12,13 +14,13 @@ function App() {
         <main>
           <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
             <Routes>
-              <Route path="/" element={<div>Welcome to Atzenwin!</div>} />
+              <Route path="/" element={<Winsite />} />
             </Routes>
           </div>
         </main>
       </div>
     </Router>
-  )
+  );
 }
 
-export default App 
+export default App; 
