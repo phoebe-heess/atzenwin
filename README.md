@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Atzenwin Web Application
 
 A modern web application built with React and TypeScript.
@@ -52,3 +53,6 @@ This project uses modern web development tools and practices:
 - ESLint and Prettier for code quality
 - Tailwind CSS for styling
 - Vite for fast development and building 
+=======
+# atzenwin
+>>>>>>> 3571d3a8229ca2f8ec3fdfce47a13141ca146b68
