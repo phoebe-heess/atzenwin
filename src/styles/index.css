@@ -5,5 +5,26 @@
 @layer base {
   body {
     @apply antialiased text-gray-900;
+    background: #f5f5f5;
+    min-height: 100vh;
+    margin: 0;
   }
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-container {
+  width: 375px;
+  min-height: 100vh;
+  background: #EDD1B2;
+  box-shadow: 0 0 24px rgba(0,0,0,0.12);
+  margin: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 } 

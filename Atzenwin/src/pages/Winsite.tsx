@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const BG_COLOR = '#EDD1B2';
-const GREEN = '#17904A';
+const GREEN = '#03855c';
 const ORANGE = '#E6A12D';
 
 const medal = '/assets/medal.svg'; // Placeholder path
