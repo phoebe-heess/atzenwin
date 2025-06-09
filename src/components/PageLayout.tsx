@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const BG_COLOR = '#EDD1B2';
 const GREEN = '#03855c';
@@ -9,24 +10,36 @@ interface PageLayoutProps {
   children: React.ReactNode;
   title: string;
   onOpenMenu?: () => void;
+  alignTop?: boolean;
 }
 
-export default function PageLayout({ children, title, onOpenMenu }: PageLayoutProps) {
+export default function PageLayout({ children, title, onOpenMenu, alignTop }: PageLayoutProps) {
   return (
-    <div style={{ 
-      background: BG_COLOR, 
-      minHeight: '100vh', 
-      fontFamily: 'monospace',
-      padding: '20px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      width: '100%',
-      maxWidth: 430,
-      margin: '0 auto',
-    }}>
+    <motion.div
+      initial={{ y: '100%', opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      exit={{ y: '100%', opacity: 0 }}
+      transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+      style={{ 
+        background: BG_COLOR, 
+        minHeight: '100vh', 
+        fontFamily: 'monospace',
+        padding: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: alignTop ? undefined : 'center',
+        textAlign: 'center',
+        width: '100%',
+        maxWidth: 430,
+        margin: '32px auto 0 auto',
+        borderTopLeftRadius: 16,
+        borderTopRightRadius: 16,
+        boxShadow: '0 8px 32px #0002',
+        position: 'relative',
+        zIndex: 10,
+      }}
+    >
       <div style={{
         width: 40,
         height: 4,
@@ -72,6 +85,6 @@ export default function PageLayout({ children, title, onOpenMenu }: PageLayoutPr
       }}>
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 } 

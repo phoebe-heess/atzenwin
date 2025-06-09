@@ -9,14 +9,6 @@ const BG_COLOR = '#EDD1B2';
 
 const MOBILE_WIDTH = 375;
 
-const menuItems = [
-  { label: 'Login', path: '/login' },
-  { label: 'Register', path: '/register' },
-  { label: 'Kontakt', path: '/kontakt' },
-  { label: 'Datenschutz', path: '/datenschutz' },
-  { label: 'Impressum', path: '/impressum' },
-];
-
 type ContainerRect = {
   left: number;
   top: number;
@@ -26,11 +18,22 @@ type ContainerRect = {
 
 export let openBurgerMenu: (() => void) | null = null;
 
-export default function BurgerMenu() {
+interface BurgerMenuProps {
+  onShowLoginRegister: () => void;
+}
+
+export default function BurgerMenu({ onShowLoginRegister }: BurgerMenuProps) {
   const [open, setOpen] = useState(false);
   const [containerRect, setContainerRect] = useState<ContainerRect>(null);
   const navigate = useNavigate();
   const buttonContainerRef = useRef(null);
+
+  const menuItems = [
+    { label: 'Login/Register', action: () => { setOpen(false); onShowLoginRegister(); } },
+    { label: 'Kontakt', path: '/kontakt' },
+    { label: 'Datenschutz', path: '/datenschutz' },
+    { label: 'Impressum', path: '/impressum' },
+  ];
 
   // Find the .mobile-container and get its bounding rect
   useLayoutEffect(() => {
@@ -89,12 +92,12 @@ export default function BurgerMenu() {
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
           style={{
             position: 'absolute',
-            top: containerRect.top,
+            top: containerRect.top + 32,
             left: containerRect.left,
             width: containerRect.width,
-            height: containerRect.height,
+            height: containerRect.height - 32,
             background: BG_COLOR,
-            boxShadow: '0 -2px 12px #0002',
+            boxShadow: '0 8px 32px #0002',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'stretch',
@@ -140,14 +143,10 @@ export default function BurgerMenu() {
           }}>
             {menuItems.map(item => (
               <button
-                key={item.path || item.label}
-                onClick={() => { 
-                  setOpen(false); 
-                  if (item.onClick) {
-                    item.onClick();
-                  } else {
-                    navigate(item.path);
-                  }
+                key={item.label}
+                onClick={() => {
+                  if (item.action) item.action();
+                  else if (item.path) { setOpen(false); navigate(item.path); }
                 }}
                 style={{
                   width: '100%',
@@ -174,7 +173,7 @@ export default function BurgerMenu() {
 
   return (
     <>
-      <div ref={buttonContainerRef} style={{ position: 'absolute', bottom: 20, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 100 }}>
+      <div ref={buttonContainerRef} style={{ position: 'absolute', bottom: 24, left: 0, right: 0, display: 'flex', justifyContent: 'center', zIndex: 100 }}>
         <motion.button
           onClick={() => setOpen(true)}
           style={{

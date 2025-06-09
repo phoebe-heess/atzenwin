@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmailRegisterForm from './EmailRegisterForm';
+import EmailLoginForm from './EmailLoginForm';
 import SocialAuth from './SocialAuth';
 
 const GREEN = '#03855c';
@@ -10,13 +11,21 @@ const ORANGE = '#d69229';
 interface RegisterOverlayProps {
   atzencoins: number;
   onClose: () => void;
+  mode?: 'menu';
 }
 
-export default function RegisterOverlay({ atzencoins, onClose }: RegisterOverlayProps) {
+export default function RegisterOverlay({ atzencoins, onClose, mode }: RegisterOverlayProps) {
   const [showEmailForm, setShowEmailForm] = useState(false);
+  const [isLogin, setIsLogin] = useState(false);
   const [error, setError] = useState('');
 
   const handleEmailRegister = () => {
+    setIsLogin(false);
+    setShowEmailForm(true);
+  };
+
+  const handleEmailLogin = () => {
+    setIsLogin(true);
     setShowEmailForm(true);
   };
 
@@ -48,15 +57,23 @@ export default function RegisterOverlay({ atzencoins, onClose }: RegisterOverlay
     >
       <AnimatePresence mode="wait">
         {showEmailForm ? (
-          <EmailRegisterForm
-            key="email-form"
-            atzencoins={atzencoins}
-            onSuccess={handleSuccess}
-            onCancel={() => setShowEmailForm(false)}
-          />
+          isLogin ? (
+            <EmailLoginForm
+              key="email-login"
+              onSuccess={handleSuccess}
+              onCancel={() => setShowEmailForm(false)}
+            />
+          ) : (
+            <EmailRegisterForm
+              key="email-register"
+              atzencoins={atzencoins}
+              onSuccess={handleSuccess}
+              onCancel={() => setShowEmailForm(false)}
+            />
+          )
         ) : (
           <motion.div
-            key="register-options"
+            key="auth-options"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -70,18 +87,18 @@ export default function RegisterOverlay({ atzencoins, onClose }: RegisterOverlay
             }}
           >
             <h2 style={{ color: GREEN, fontSize: '24px', marginBottom: '16px', fontWeight: 700, fontFamily: 'Montserrat, Arial, sans-serif' }}>
-              Speichere deine Atzencoins
+              {mode === 'menu' ? 'Login/Register' : 'Speichere deine Atzencoins'}
             </h2>
-            <p style={{ color: GREEN, marginBottom: '24px', fontSize: '16px', fontFamily: 'Montserrat, Arial, sans-serif' }}>
-              Du hast {atzencoins} Atzencoins gesammelt! Erstelle ein Profil, um sie zu sichern und weiterzutrinken <span role="img" aria-label="tears of joy">😂</span>.
-            </p>
-            
+            {mode !== 'menu' && (
+              <p style={{ color: GREEN, marginBottom: '24px', fontSize: '16px', fontFamily: 'Montserrat, Arial, sans-serif' }}>
+                Du hast {atzencoins} Atzencoins gesammelt! Erstelle ein Profil oder melde dich an, um sie zu sichern und weiterzutrinken <span role="img" aria-label="tears of joy">😂</span>.
+              </p>
+            )}
             {error && (
               <div style={{ color: 'red', marginBottom: '16px', fontWeight: 500 }}>
                 {error}
               </div>
             )}
-
             <button
               onClick={handleEmailRegister}
               style={{
@@ -106,7 +123,30 @@ export default function RegisterOverlay({ atzencoins, onClose }: RegisterOverlay
             >
               <span>📧</span> Mit E-Mail registrieren
             </button>
-
+            <button
+              onClick={handleEmailLogin}
+              style={{
+                background: ORANGE,
+                color: '#fff',
+                padding: '14px',
+                borderRadius: '10px',
+                border: 'none',
+                fontSize: '17px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                marginBottom: '14px',
+                width: '100%',
+                boxShadow: '0 2px 8px #0001',
+                transition: 'background 0.2s',
+                fontFamily: 'Montserrat, Arial, sans-serif',
+              }}
+            >
+              <span>🔑</span> Mit E-Mail anmelden
+            </button>
             <SocialAuth
               atzencoins={atzencoins}
               onSuccess={handleSuccess}
@@ -123,7 +163,6 @@ export default function RegisterOverlay({ atzencoins, onClose }: RegisterOverlay
                 transition: 'background 0.2s',
               }}
             />
-
             <button
               onClick={onClose}
               style={{
