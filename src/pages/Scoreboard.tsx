@@ -2,6 +2,7 @@ import React from 'react';
 import PageLayout from '../components/PageLayout';
 import fourGif from '../assets/4.gif';
 import goldbarPng from '../assets/goldbar.png';
+import { useNavigate } from 'react-router-dom';
 
 const GREEN = '#03855c';
 const ORANGE = '#d69229';
@@ -13,8 +14,9 @@ interface ScoreboardProps {
 }
 
 export default function Scoreboard({ atzencoins }: ScoreboardProps) {
+  const navigate = useNavigate();
   return (
-    <PageLayout title="SCOREBOARD" alignTop>
+    <PageLayout title="SCOREBOARD" onClose={() => navigate('/') }>
       {/* Atzencoins Card */}
       <div style={{
         width: '100%',

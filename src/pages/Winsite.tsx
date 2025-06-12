@@ -52,20 +52,25 @@ export default function Winsite({ atzencoins, setAtzencoins }: WinsiteProps) {
 
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const instagramButtonRef = useRef<HTMLButtonElement | null>(null);
 
   // --- Schrift overlay controls (for dev fitting) ---
 
   // Touch event handlers for 360° swipe
   const handleTouchStart = (e: React.TouchEvent) => {
-    setHasStarted(true);
+    e.preventDefault(); // Prevent page scroll
     const touch = e.touches[0];
     const rect = (e.target as HTMLElement).getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    if (!isInsideLogo(x, y, rect)) return;
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
     const angle = Math.atan2(touch.clientY - centerY, touch.clientX - centerX) * 180 / Math.PI;
     startAngleRef.current = angle;
     startRotationRef.current = rotation;
-    lastPlusOneAngle.current = rotation;
+    setHasStarted(true);
   };
 
   // Helper to check if a point is inside the logo (not the wheel)
@@ -80,7 +85,7 @@ export default function Winsite({ atzencoins, setAtzencoins }: WinsiteProps) {
 
   // Touch event handlers for 360° swipe
   const handleTouchMove = (e: React.TouchEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent page scroll
     if (startAngleRef.current === null) return;
     const touch = e.touches[0];
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -102,11 +107,11 @@ export default function Winsite({ atzencoins, setAtzencoins }: WinsiteProps) {
       const stepsPassed = Math.floor(Math.abs(diff) / step);
       for (let i = 1; i <= stepsPassed; i++) {
         if (spins < maxSpins) {
-          setSpins((prev) => prev + 0.25); // 90° = 0.25 spin
-          setAtzencoins((prev) => Math.min(prev + pointsPerSpin / 4, maxPoints));
+          setSpins((prev) => prev + 0.25);
+          const pointsToAdd = pointsPerSpin / 4;
+          setAtzencoins((prev) => prev + pointsToAdd);
         }
         for (let j = 0; j < 16; j++) {
-          // Only spawn +1s if inside wheel
           if (isInsideLogo(x, y, rect)) {
             const plusOne: PlusOne = {
               id: plusOneCounter.current++,
@@ -121,7 +126,8 @@ export default function Winsite({ atzencoins, setAtzencoins }: WinsiteProps) {
     }
   };
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    e.preventDefault(); // Prevent page scroll
     // If rotated more than 300°, trigger spin
     if (Math.abs(rotation) > 300) {
       const outcomes = ['gold', 'booster', 'lose'];
@@ -226,6 +232,31 @@ export default function Winsite({ atzencoins, setAtzencoins }: WinsiteProps) {
     });
   }, []);
 
+  // Add a connectWallet function for the button
+  const connectWallet = async () => {
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setWalletAddress(accounts[0]);
+      } catch (error) {
+        alert('Connection rejected.');
+      }
+    } else {
+      alert('MetaMask not detected!');
+    }
+  };
+
+  useEffect(() => {
+    if (showRegisterOverlay) {
+      if (instagramButtonRef.current) {
+        instagramButtonRef.current.blur();
+      }
+      if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+    }
+  }, [showRegisterOverlay]);
+
   return (
     <div className="mobile-container" style={{ position: 'relative', minHeight: '100vh', width: '100%', maxWidth: 430, margin: '0 auto', background: BG_COLOR, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       {/* Atzencoins Counter and User Icon Row */}
@@ -239,135 +270,171 @@ export default function Winsite({ atzencoins, setAtzencoins }: WinsiteProps) {
           </button>
         )}
       </div>
-      {/* Main Wheel Area */}
-      <div className="flex flex-col items-center justify-center w-full px-4">
-        {/* Wheel with swipe gesture */}
+
+      {/* Game Wheel */}
+      <div
+        style={{
+          position: 'relative',
+          width: BASE_WHEEL_SIZE * SCALE,
+          height: BASE_WHEEL_SIZE * SCALE,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '32px 0 16px 0',
+          touchAction: 'none', // Prevent page scroll on mobile
+        }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        {/* Rotating chain_turn.png */}
+        <img
+          src={chainTurn}
+          alt="Wheel"
+          style={{
+            width: BASE_WHEEL_SIZE * SCALE,
+            height: BASE_WHEEL_SIZE * SCALE,
+            borderRadius: '50%',
+            position: 'absolute',
+            left: 0,
+            top: chainYOffset, // Only the chain moves vertically
+            transform: `rotate(${rotation}deg)`,
+            transition: 'transform 0.2s cubic-bezier(.4,2,.6,1)',
+            objectFit: 'cover',
+          }}
+          draggable={false}
+        />
+        {/* Centered logo */}
         <div
-          className="relative mb-8 flex items-center justify-center touch-none"
-          style={{ width: BASE_WHEEL_SIZE * SCALE, height: BASE_WHEEL_SIZE * SCALE }}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
+          style={{
+            position: 'absolute',
+            left: (BASE_WHEEL_SIZE * SCALE) / 2 - (logoSize / 2),
+            top: (BASE_WHEEL_SIZE * SCALE) / 2 - (logoSize / 2),
+            width: logoSize,
+            height: logoSize,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 10,
+          }}
         >
-          {/* Rotating chain_turn.png */}
           <img
-            src={chainTurn}
-            alt="Wheel"
+            src={logo}
+            alt="Atzengold Logo"
             style={{
-              width: BASE_WHEEL_SIZE * SCALE,
-              height: BASE_WHEEL_SIZE * SCALE,
+              width: logoSize,
+              height: logoSize,
+              objectFit: 'contain',
               borderRadius: '50%',
-              position: 'absolute',
-              left: 0,
-              top: chainYOffset, // Only the chain moves vertically
-              transform: `rotate(${rotation}deg)`,
-              transition: 'transform 0.2s cubic-bezier(.4,2,.6,1)',
-              objectFit: 'cover',
+              background: 'transparent',
+              zIndex: 1,
+              pointerEvents: 'none',
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
             }}
             draggable={false}
           />
-          {/* Centered logo */}
-          <div
+          <img
+            src={schriftGif}
+            alt="schrift"
             style={{
               position: 'absolute',
-              left: (BASE_WHEEL_SIZE * SCALE) / 2 - (logoSize / 2),
-              top: (BASE_WHEEL_SIZE * SCALE) / 2 - (logoSize / 2),
-              width: logoSize,
-              height: logoSize,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              left: '50%',
+              top: '49%',
+              transform: 'translate(-50%, -50%)',
+              width: 256,
               pointerEvents: 'none',
-              zIndex: 10,
+              zIndex: 2,
             }}
-          >
-            <img
-              src={logo}
-              alt="Atzengold Logo"
-              style={{
-                width: logoSize,
-                height: logoSize,
-                objectFit: 'contain',
-                borderRadius: '50%',
-                background: 'transparent',
-                zIndex: 1,
-                pointerEvents: 'none',
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-              }}
-              draggable={false}
-            />
-            <img
-              src={schriftGif}
-              alt="schrift"
-              style={{
-                position: 'absolute',
-                left: '50%',
-                top: '49%',
-                transform: 'translate(-50%, -50%)',
-                width: 256,
-                pointerEvents: 'none',
-                zIndex: 2,
-              }}
-              draggable={false}
-            />
-          </div>
+            draggable={false}
+          />
+        </div>
 
-          {/* +1 Animations */}
-          <AnimatePresence>
-            {plusOnes.map((plusOne) => (
-              <motion.div
-                key={plusOne.id}
-                className="absolute text-2xl font-bold"
-                initial={{ opacity: 1, y: 0, scale: 1 }}
-                animate={{ opacity: 0, y: -BASE_WHEEL_SIZE * SCALE * 0.75, scale: 1.2 }} // Fly upwards 3/4 of the wheel size
-                exit={{ opacity: 0 }}
-                transition={{ duration: 2 }} // Slower animation
-                style={{
-                  left: plusOne.x,
-                  top: plusOne.y,
-                  color: '#d69229' // Updated color
-                }}
-              >
-                +1
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </div>
-        {/* Progress Bar */}
-        <div className="w-4/5 max-w-md mb-4" style={{ position: 'relative', height: 20 }}>
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: BG_COLOR,
-            borderRadius: 9999,
-            border: '3px solid #03855c',
-            boxSizing: 'border-box',
-          }}></div>
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: `${progress * 100}%`,
-            height: '100%',
-            background: '#03855c',
-            borderRadius: 9999,
-            transition: 'width 0.3s',
-          }}></div>
-        </div>
-        {/* Scale locked at 1.47 as requested */}
+        {/* +1 Animations */}
+        <AnimatePresence>
+          {plusOnes.map((plusOne) => (
+            <motion.div
+              key={plusOne.id}
+              className="absolute text-2xl font-bold"
+              initial={{ opacity: 1, y: 0, scale: 1 }}
+              animate={{ opacity: 0, y: -BASE_WHEEL_SIZE * SCALE * 0.75, scale: 1.2 }} // Fly upwards 3/4 of the wheel size
+              exit={{ opacity: 0 }}
+              transition={{ duration: 2 }} // Slower animation
+              style={{
+                left: plusOne.x,
+                top: plusOne.y,
+                color: '#d69229' // Updated color
+              }}
+            >
+              +1
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
+
+      {/* Move Connect Wallet button here, below spinner */}
+      <div style={{ marginTop: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <button
+          onClick={connectWallet}
+          style={{
+            background: GREEN,
+            color: '#fff',
+            padding: '8px 16px',
+            borderRadius: 8,
+            border: 'none',
+            cursor: 'pointer',
+            marginRight: 8,
+          }}
+        >
+          {walletAddress ? 'Wallet Connected' : 'Connect Wallet'}
+        </button>
+        {walletAddress && (
+          <span style={{ color: '#333', fontSize: 12 }}>
+            {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+          </span>
+        )}
+      </div>
+
+      {/* Progress Bar */}
+      <div className="w-4/5 max-w-md mb-4" style={{ position: 'relative', height: 20 }}>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          background: BG_COLOR,
+          borderRadius: 9999,
+          border: '3px solid #03855c',
+          boxSizing: 'border-box',
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: `${progress * 100}%`,
+          height: '100%',
+          background: '#03855c',
+          borderRadius: 9999,
+          transition: 'width 0.3s',
+        }}></div>
+      </div>
+      {/* Scale locked at 1.47 as requested */}
+
       {/* Logo size locked at 389px as requested */}
 
       {/* Instagram Button Absolute Bottom Right in Container */}
       <button
+        ref={instagramButtonRef}
         aria-label="Instagram"
+        tabIndex={-1}
+        onMouseDown={e => e.preventDefault()}
+        onTouchStart={e => e.preventDefault()}
         style={{
           position: 'absolute',
           bottom: 20,

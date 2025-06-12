@@ -13,7 +13,8 @@ interface PageLayoutProps {
   alignTop?: boolean;
 }
 
-export default function PageLayout({ children, title, onOpenMenu, alignTop }: PageLayoutProps) {
+export default function PageLayout({ children, title, onOpenMenu, alignTop, onClose }: PageLayoutProps & { onClose?: () => void }) {
+  const navigate = useNavigate();
   return (
     <motion.div
       initial={{ y: '100%', opacity: 0 }}
@@ -51,7 +52,7 @@ export default function PageLayout({ children, title, onOpenMenu, alignTop }: Pa
         style={{
           position: 'absolute',
           top: 20,
-          left: 20,
+          right: 20,
           background: 'transparent',
           border: 'none',
           color: GREEN,
@@ -59,10 +60,10 @@ export default function PageLayout({ children, title, onOpenMenu, alignTop }: Pa
           fontSize: 28,
           cursor: 'pointer',
         }}
-        onClick={onOpenMenu}
-        aria-label="Open menu"
+        onClick={onClose ? onClose : () => navigate('/')}
+        aria-label="Close"
       >
-        &#9776;
+        ×
       </button>
       <h1 style={{ 
         color: ORANGE, 

@@ -1,12 +1,14 @@
 import React from 'react';
 import PageLayout from '../components/PageLayout';
 import { openBurgerMenu } from '../components/BurgerMenu';
+import { useNavigate } from 'react-router-dom';
 
 const GREEN = '#03855c';
 
 export default function Datenschutz() {
+  const navigate = useNavigate();
   return (
-    <PageLayout title="DATENSCHUTZ" onOpenMenu={() => openBurgerMenu && openBurgerMenu()}>
+    <PageLayout title="DATENSCHUTZ" onClose={() => navigate('/') }>
       <div style={{ 
         maxWidth: 600, 
         padding: '0 20px', 

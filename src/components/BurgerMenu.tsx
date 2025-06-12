@@ -116,19 +116,18 @@ export default function BurgerMenu({ onShowLoginRegister }: BurgerMenuProps) {
             margin: '16px auto 12px auto',
           }} />
           <button
-            onClick={() => setOpen(false)}
             style={{
               position: 'absolute',
-              top: 20,
-              right: 20,
-              background: 'transparent',
+              top: 16,
+              right: 16,
+              background: 'none',
               border: 'none',
               fontSize: 32,
-              color: GREEN,
+              color: '#03855c',
               cursor: 'pointer',
-              fontWeight: 'bold',
-              zIndex: 1,
+              zIndex: 1001,
             }}
+            onClick={() => setOpen(false)}
             aria-label="Close menu"
           >
             ×
