@@ -11,12 +11,18 @@ import Datenschutz from './pages/Datenschutz';
 import Impressum from './pages/Impressum';
 import RegisterOverlay from './components/RegisterOverlay';
 import Scoreboard from './pages/Scoreboard';
+import { initAnalytics } from './services/analytics';
 
 function App() {
   const [showAgeCheck, setShowAgeCheck] = useState(false);
   const [showLoginRegister, setShowLoginRegister] = useState(false);
   const [atzencoins, setAtzencoins] = useState(0);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+
+    // Initialize analytics on app load
+    useEffect(() => {
+          initAnalytics();
+    }, []);
 
   useEffect(() => {
     const ageChecked = localStorage.getItem('ageChecked');
